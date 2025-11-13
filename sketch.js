@@ -112,7 +112,7 @@ async function sendMessage() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-5-20250929",  // Which AI model to use
+        model: "claude-haiku-4-5-20251001",  // Which AI model to use
         max_tokens: 1024,                      // Maximum length of response
         messages: conversationHistory          // All previous messages
       })
