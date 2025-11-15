@@ -159,7 +159,7 @@ async function sendMessage() {
     // Create message div for streaming response
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'assistant');
-    messageDiv.innerHTML = '<strong>The Corgi:</strong> ';
+    messageDiv.innerHTML = '<strong>The Pixel Mosher:</strong> ';
     const contentSpan = document.createElement('span');
     messageDiv.appendChild(contentSpan);
     chatHistory.appendChild(messageDiv);
