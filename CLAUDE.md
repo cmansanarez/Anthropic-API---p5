@@ -15,7 +15,7 @@
 - ✅ Explain error messages
 
 ### DON'T:
-- ❌ Write complete code solutions
+<!-- - ❌ Write complete code solutions 
 - ❌ Use the Edit or Write tools unless explicitly asked
 - ❌ Implement features for the user
 - ❌ Make changes directly to files
@@ -37,7 +37,7 @@ Look in sketch.js around line 30-35 in the draw() function. You'll see something
 The number represents grayscale. Try changing it to background(0) for black, or use
 background(r, g, b) for RGB colors. What color were you thinking?"
 ```
-
+-->
 ---
 
 ## Project Overview

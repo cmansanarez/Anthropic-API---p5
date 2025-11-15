@@ -1,6 +1,6 @@
 /*
- * CHAT WITH CLAUDE - A p5.js + AI Application
- * This sketch creates a chat interface where users can talk with Claude AI
+ * CHAT WITH CLAUDE - A p5.js + AI Application (Hybrid HTML/Canvas)
+ * This sketch creates a chat interface using HTML/CSS with p5.js for effects
  */
 
 // =============================================================================
@@ -14,70 +14,84 @@ const API_URL = "http://localhost:3000/api/chat";
 // GLOBAL VARIABLES
 // =============================================================================
 
-let inputField;              // Text box where user types
-let submitButton;            // Button to send messages
 let conversationHistory = []; // Array storing all messages back and forth
 let isLoading = false;       // Are we waiting for Claude to respond?
+
+// HTML element references
+let chatHistory;
+let userInput;
+let sendButton;
 
 // =============================================================================
 // SETUP - Runs once when the program starts
 // =============================================================================
 
 function setup() {
+  // Create canvas for background effects (sits behind HTML via CSS)
   createCanvas(windowWidth, windowHeight);
-
-  // Create text input box at top of screen
-  inputField = createInput("");
-  inputField.position(20, 20);
-  inputField.size(width - 140, 40);
-  inputField.attribute("placeholder", "Type your message here...");
-
-  // Create send button next to input box
-  submitButton = createButton("Send");
-  submitButton.position(width - 100, 20);
-  submitButton.size(80, 40);
-  submitButton.mousePressed(sendMessage); // When clicked, call sendMessage()
-
-  // Allow Enter key to send message (instead of clicking button)
-  inputField.elt.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
+  
+  // Get references to HTML elements
+  chatHistory = document.getElementById('chat-history');
+  userInput = document.getElementById('user-input');
+  sendButton = document.getElementById('send-button');
+  
+  // Add event listeners
+  sendButton.addEventListener('click', sendMessage);
+  
+  // Allow Enter key to send message
+  userInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
       sendMessage();
     }
   });
-
-  // Set default text settings
-  textAlign(LEFT, TOP);
-  textSize(14);
 }
 
 // =============================================================================
-// DRAW - Runs 60 times per second, displays everything on screen
+// DRAW - Runs 60 times per second, for background effects
 // =============================================================================
 
 function draw() {
-  background(240); // Light gray background
+  // Semi-transparent oscillating overlay - lets background image show through
+  let gray = map(sin(frameCount * 0.02), -1, 1, 30, 60);
+  background(gray, gray, gray, 5); // The 20 is the alpha (transparency: 0-255)
+  
+  // You can add more visual effects here later!
+  // Ideas: particles, grid lines, glitch effects, etc.
+}
 
-  // Draw all messages starting below the input
-  let yPos = 80;
-  textSize(16);
+// =============================================================================
+// DISPLAY MESSAGES IN THE CHAT
+// =============================================================================
 
-  for (let msg of conversationHistory) {
-    if (msg.role === "user") {
-      fill(0, 0, 255);
-      text("You: " + msg.content, 20, yPos);
-    } else if (msg.role === "assistant") {
-      fill(255, 0, 0);
-      text("Claude: " + msg.content, 20, yPos);
-    }
-    yPos += 25;
+function displayMessage(role, content) {
+  // Create a new message div
+  const messageDiv = document.createElement('div');
+  messageDiv.classList.add('message', role);
+  
+  // Add label and content
+  const label = role === 'user' ? 'You' : 'The Pixel Mosher';
+  messageDiv.innerHTML = `<strong>${label}:</strong> ${content}`;
+  
+  // Add to chat history
+  chatHistory.appendChild(messageDiv);
+  
+  // Auto-scroll to bottom
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function showLoading(show) {
+  // Remove existing loading indicator if present
+  const existingLoading = document.querySelector('.loading');
+  if (existingLoading) {
+    existingLoading.remove();
   }
-
-  // Show loading indicator
-  if (isLoading) {
-    fill(100);
-    textStyle(ITALIC);
-    text("Claude is typing...", 20, yPos);
-    textStyle(NORMAL);
+  
+  if (show) {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.classList.add('loading');
+    loadingDiv.textContent = 'The Pixel Mosher is typing...';
+    chatHistory.appendChild(loadingDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
   }
 }
 
@@ -87,13 +101,16 @@ function draw() {
 
 async function sendMessage() {
   // Don't send if we're already waiting or if input is empty
-  if (isLoading || inputField.value().trim() === "") {
+  if (isLoading || userInput.value.trim() === "") {
     return;
   }
 
   // Get the user's message and clear the input box
-  let userMessage = inputField.value().trim();
-  inputField.value("");
+  let userMessage = userInput.value.trim();
+  userInput.value = "";
+
+  // Display user's message
+  displayMessage('user', userMessage);
 
   // Add user's message to conversation history
   conversationHistory.push({
@@ -103,6 +120,7 @@ async function sendMessage() {
 
   // Show loading indicator
   isLoading = true;
+  showLoading(true);
 
   try {
     // Send request to our server (which talks to Claude)
@@ -128,14 +146,23 @@ async function sendMessage() {
     const decoder = new TextDecoder();
     let buffer = "";
 
-    // Add placeholder for assistant's response (after we know streaming started successfully)
+    // Add placeholder for assistant's response
     conversationHistory.push({
       role: "assistant",
       content: ""
     });
 
-    // Hide loading indicator now that we have a response container
+    // Hide loading indicator
     isLoading = false;
+    showLoading(false);
+
+    // Create message div for streaming response
+    const messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', 'assistant');
+    messageDiv.innerHTML = '<strong>The Corgi:</strong> ';
+    const contentSpan = document.createElement('span');
+    messageDiv.appendChild(contentSpan);
+    chatHistory.appendChild(messageDiv);
 
     // Get reference to the assistant's message we're building
     const assistantMessage = conversationHistory[conversationHistory.length - 1];
@@ -164,6 +191,10 @@ async function sendMessage() {
             // Handle content_block_delta events
             if (event.type === 'content_block_delta' && event.delta?.text) {
               assistantMessage.content += event.delta.text;
+              contentSpan.textContent = assistantMessage.content;
+              
+              // Auto-scroll as content streams in
+              chatHistory.scrollTop = chatHistory.scrollHeight;
             }
 
           } catch (e) {
@@ -183,7 +214,19 @@ async function sendMessage() {
       content: "Error: " + error.message
     });
 
+    // Display error
+    displayMessage('assistant', "Error: " + error.message);
+
     // Hide loading indicator
     isLoading = false;
+    showLoading(false);
   }
+}
+
+// =============================================================================
+// WINDOW RESIZE - Keep canvas fullscreen
+// =============================================================================
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
 }

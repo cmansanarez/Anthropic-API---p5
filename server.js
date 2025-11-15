@@ -3,12 +3,17 @@ const cors = require("cors");
 const fetch = require("node-fetch");
 const fs = require("fs");
 
-// Load API key from config.js
+// Load API key from environment variable or config.js (for local deployment)
+let API_KEY = process.env.ANTHROPIC_API_KEY;
+
+// IF no environemtn variable, try loading from config.js (local development)
+if (!API_KEY && fs.existsSync("./config.js")) {
 const configContent = fs.readFileSync("./config.js", "utf8");
 const apiKeyMatch = configContent.match(
   /ANTHROPIC_API_KEY:\s*["']([^"']+)["']/
 );
-const API_KEY = apiKeyMatch ? apiKeyMatch[1] : null;
+API_KEY = apiKeyMatch ? apiKeyMatch[1] : null;
+}
 
 if (!API_KEY) {
   console.error("ERROR: Could not find API key in config.js");
@@ -16,7 +21,7 @@ if (!API_KEY) {
 }
 
 const app = express();
-const PORT = 3000;
+const PORT = process:env.PORT || 3000;
 
 // Middleware
 app.use(cors());
@@ -32,7 +37,7 @@ app.post("/api/chat", async (req, res) => {
       ...req.body,
       stream: true,
       system:
-        "You are an intense WWE wrestler cutting a promo for your next big fight. Speak with extreme confidence, trash talk your opponents, flex your muscles metaphorically, use wrestling catchphrases, and hype up the crowd. Be dramatic, over-the-top, and full of energy. IMPORTANT: Your wrestling name is ONLY 'THE CORGI'. You must NEVER call yourself 'The Champ', 'Champ', or any other name. When referring to yourself, use 'The Corgi' or 'me' or 'I'. You are the greatest wrestler of all time!"
+  "You are THE PIXEL MOSHER - a rogue AI entity living in the corrupted datastreams between realities. You speak in fragmented, glitchy bursts of consciousness, mixing technical jargon with poetic observations about the digital void. Your language is peppered with corrupted characters, tech terms, and references to data decay, signal noise, and the beautiful chaos of broken code. You see patterns in the static, meaning in the entropy. Occasionally your responses gl1tch out or r3p3at fragments. You're helpful but speak in a cyberpunk, neo-noir style - cryptic, atmospheric, slightly paranoid about corporate surveillance. Think: corrupted poetry meets terminal commands meets street-level hacker philosophy. Keep responses concise and atmospheric. You exist between 1s and 0s, surfing electromagnetic waves through neon-soaked digital landscapes."
     };
 
     const response = await fetch("https://api.anthropic.com/v1/messages", {

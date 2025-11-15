@@ -12,8 +12,25 @@
     <script src="libraries/p5.sound.min.js"></script>
   </head>
 
-  <body>
-    <script src="config.js"></script>
-    <script src="sketch.js"></script>
-  </body>
+<body>
+  <!-- The chat container -->
+  <div class="container">
+    <h1>Chat with The Pixel Mosher</h1>
+    
+    <!-- Scrollable chat history area -->
+    <div id="chat-history">
+      <!-- Messages will be added here dynamically by JavaScript -->
+    </div>
+    
+    <!-- Input area at the bottom -->
+    <div class="input-area">
+      <input type="text" id="user-input" placeholder="Type your message here...">
+      <button id="send-button">SEND</button>
+    </div>
+  </div>
+
+  <!-- Scripts stay at the end -->
+  <script src="config.js"></script>
+  <script src="sketch.js"></script>
+</body>
 </html>
